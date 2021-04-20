@@ -7,6 +7,16 @@
 
 (defonce users (r/atom []))
 
+(defn load-users []
+  (go (let [response (<! (http/get "https://api.github.com/users"
+                                   {:with-credentials? false
+                                    :query-params {"since" 135}}))]
+        (prn (:status response))
+        (prn (:body response))
+        (reset! users (:body response))
+       ;; (prn map :login (:body response))
+        )))
+
 (defn user-component []
   [:div
    [:h3 "I am a component!"]
@@ -22,18 +32,10 @@
        (str (user :login))])]])
 
 (defn ^:export init []
-  (println "Hello World")
-  (go (let [response (<! (http/get "https://api.github.com/users"
-                                   {:with-credentials? false
-                                    :query-params {"since" 135}}))]
-        (prn (:status response))
-        (prn (:body response))
-        (reset! users (:body response))
-       ;; (prn map :login (:body response))
-        ))
-(rdom/render [user-component] (js/document.getElementById "root")))
+  (load-users)
+  (rdom/render [user-component] (js/document.getElementById "root")))
+
 
 (comment
-
 (print @users)  
   )
