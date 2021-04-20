@@ -7,23 +7,21 @@
 
 (defonce users (r/atom []))
 
-(defn some-component []
+(defn user-component []
   [:div
    [:h3 "I am a component!"]
    [:p.someclass
     "I have " [:strong "bold"]
     [:span {:style {:color "red"}} " and red"]
     " text."]
-   [:ul
+   [:ul {:style {:list-style-type "none"}}
     (for [user @users]
       ^{:key user}
-      [:li (str (user :login))])]
-   ])
+      [:li
+       [:img {:src (user :avatar_url) :style {:margin "0 10px"  :width 50 :height 50 :border-radius 4}}]
+       (str (user :login))])]])
 
-(defn ^:export render-component []
-    (rdom/render [some-component] (js/document.getElementById "root")))
-
-(defn init []
+(defn ^:export init []
   (println "Hello World")
   (go (let [response (<! (http/get "https://api.github.com/users"
                                    {:with-credentials? false
@@ -33,7 +31,9 @@
         (reset! users (:body response))
        ;; (prn map :login (:body response))
         ))
-  (render-component))
+(rdom/render [user-component] (js/document.getElementById "root")))
+
 (comment
+
 (print @users)  
   )
